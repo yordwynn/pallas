@@ -5,8 +5,7 @@ import sttp.client._
 import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.{SttpBackend, basicRequest}
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait Source {
   def baseUrl: String
@@ -17,13 +16,14 @@ final class Jhu extends Source {
   override val baseUrl: String = "https://raw.githubusercontent.com/CSSEGISandData/2019-nCoV/master/csse_covid_19_data/csse_covid_19_time_series/"
 
   override def getSummaryByCountry(country: String)(implicit context: ExecutionContext, backend: SttpBackend[Future, Nothing, WebSocketHandler]): Future[Summary] = {
-    val confirmed = getSummaryByCountryByCategory(country, "confirmed")
-    val deaths = getSummaryByCountryByCategory(country, "deaths")
-    val recovered = getSummaryByCountryByCategory(country, "recovered")
-
-    Await.result(confirmed zip deaths zip recovered, Duration.Inf)
-
-    confirmed.flatMap(conf => deaths.flatMap(rec => recovered.map(death => Summary(country, conf, rec, death))))
+     Future.traverse(Seq(
+      getSummaryByCountryByCategory(country, "confirmed"),
+      getSummaryByCountryByCategory(country, "deaths"),
+      getSummaryByCountryByCategory(country, "recovered")
+    ))(y => y).map{
+       case List(confirmed, deaths, recovered) => Summary(country, confirmed, deaths, recovered)
+       case _ => Summary(country, 0, 0, 0)
+     }
   }
 
   private def getSummaryByCountryByCategory(country: String, category: String)(implicit context: ExecutionContext, backend: SttpBackend[Future, Nothing, WebSocketHandler]): Future[Int] = {
