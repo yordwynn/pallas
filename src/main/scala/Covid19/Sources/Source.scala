@@ -35,12 +35,11 @@ final class Jhu extends Source {
   }
 
   private def extract(data: String, country: String): Int = {
-    Option(data.split("\n").toList).
-      map {
-        l1 => l1.map(_.split(",").toList).
-          filter(l2 => l2(1) == country).
-          map(_.last.toInt).sum
-      }.getOrElse(0)
+    data.
+      split("\n").toList.
+      map(_.split(",").toList).
+      filter(l => l(1) == country).
+      map(_.last.toInt).sum
   }
 }
 
