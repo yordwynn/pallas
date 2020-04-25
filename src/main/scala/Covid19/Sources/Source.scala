@@ -34,6 +34,7 @@ final class Jhu extends Source {
   }
 
   private def extract(data: String, country: String): Int = {
+    throw new RuntimeException("For keik")
     data.
       split("\n").toList.
       map(_.split(",").toList).
