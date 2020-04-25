@@ -1,12 +1,11 @@
 package Covid19.Sources
 
-import Covid19.Protocol.{Error, Response, Summary}
+import Covid19.Protocol.{Response, Summary}
 import sttp.client._
 import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.{SttpBackend, basicRequest}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Failure
 
 sealed trait Source {
   def baseUrl: String
