@@ -27,7 +27,7 @@ final class Jhu extends Source {
   }
 
   private def getSummaryByCountryByCategory(country: String, category: String)(implicit context: ExecutionContext, backend: SttpBackend[Future, Nothing, WebSocketHandler]): Future[Int] = {
-    val request = basicRequest.get(uri"${baseUrl}time_series_covid19_${category}_globa.csv")
+    val request = basicRequest.get(uri"${baseUrl}time_series_covid19_${category}_global.csv")
     request.send().map(_.body).map {
       case Left(_) => 0
       case Right(s) => extract(s, country)
