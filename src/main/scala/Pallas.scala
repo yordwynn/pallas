@@ -11,7 +11,7 @@ object Pallas {
     implicit val context: ExecutionContext = ExecutionContext.global
     implicit val sttpBackend: SttpBackend[Future, Nothing, WebSocketHandler] = AsyncHttpClientFutureBackend()
 
-    val country: String = "Russia"
+    val country: String = "jp"
 
     new Jhu().getSummaryByCountry(country).onComplete{
       case Success(value) => print(value)

@@ -1,7 +1,7 @@
 package Covid19
 
 package object Countries {
-  val list: Seq[(String, String)] = Seq(
+  val countries: Seq[(String, String)] = Seq(
     "Afghanistan"                                  -> "AF",
     "Åland Islands"                                -> "AX",
     "Albania"                                      -> "AL",
