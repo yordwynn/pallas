@@ -9,7 +9,7 @@ import sttp.client.asynchttpclient.future.AsyncHttpClientFutureBackend
 import scala.concurrent.{ExecutionContext, Future}
 import scala.jdk.FutureConverters._
 
-class javaWrapper {
+class JavaWrapper {
   implicit val context: ExecutionContext = ExecutionContext.global
   implicit val sttpBackend: SttpBackend[Future, Nothing, WebSocketHandler] = AsyncHttpClientFutureBackend()
   val source = new Jhu()

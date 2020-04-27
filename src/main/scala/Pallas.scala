@@ -1,8 +1,8 @@
-import Covid19.javaWrapper
+import Covid19.JavaWrapper
 
 object Pallas {
   def main(args: Array[String]): Unit = {
-    val x = new javaWrapper().getSummaryByCountry("ru").toCompletableFuture
+    val x = new JavaWrapper().getSummaryByCountry("ru").toCompletableFuture
     while (!x.isDone)
     println(x.toCompletableFuture.get())
   }
