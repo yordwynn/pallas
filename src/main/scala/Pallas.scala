@@ -3,8 +3,7 @@ import sttp.client._
 import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.asynchttpclient.future.AsyncHttpClientFutureBackend
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 object Pallas {
@@ -14,13 +13,12 @@ object Pallas {
 
     val country: String = "Russia"
 
-    val confirmed = new Jhu().getSummaryByCountry(country)
-    Await.result(confirmed, Duration.Inf)
-
-    confirmed.onComplete{
+    new Jhu().getSummaryByCountry(country).onComplete{
       case Success(value) => print(value)
       case Failure(exception) => print(exception)
     }
+
+    Thread.sleep(1000)
   }
 }
 
