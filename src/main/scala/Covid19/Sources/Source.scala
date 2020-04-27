@@ -1,7 +1,5 @@
 package Covid19.Sources
 
-import java.util.Locale.IsoCountryCode
-
 import Covid19.Protocol.{Response, Summary}
 import Covid19.Countries.countries
 import sttp.client._
