@@ -24,7 +24,7 @@ final class Jhu extends Source {
       getSummaryByCountryByCategory(filter, "deaths"),
       getSummaryByCountryByCategory(filter, "recovered")
     ))(y => y).map{
-       case List(confirmed, deaths, recovered) => Summary(countryCode, confirmed, deaths, recovered)
+       case List(confirmed, deaths, recovered) => Summary(countryCode, confirmed, recovered, deaths)
      }
   }
 
