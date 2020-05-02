@@ -10,13 +10,13 @@ import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait Source {
   def baseUrl: String
-  def getSummaryByCountry(countryCode: String)(implicit context: ExecutionContext, backend: SttpBackend[Future, Nothing, WebSocketHandler]): Future[Response]
+  def getSummaryByCountry(countryCode: String)(implicit context: ExecutionContext, backend: SttpBackend[Identity, Nothing, NothingT]): Future[Response]
 }
 
 final class Jhu extends Source {
   override val baseUrl: String = "https://raw.githubusercontent.com/CSSEGISandData/2019-nCoV/master/csse_covid_19_data/csse_covid_19_time_series/"
 
-  override def getSummaryByCountry(countryCode: String)(implicit context: ExecutionContext, backend: SttpBackend[Future, Nothing, WebSocketHandler]): Future[Response] = {
+  override def getSummaryByCountry(countryCode: String)(implicit context: ExecutionContext, backend: SttpBackend[Identity, Nothing, NothingT]): Future[Response] = {
     val filter = getFilter(countryCode)
 
      Future.traverse(Seq(
@@ -28,9 +28,9 @@ final class Jhu extends Source {
      }
   }
 
-  private def getSummaryByCountryByCategory(filter: Seq[String], category: String)(implicit context: ExecutionContext, backend: SttpBackend[Future, Nothing, WebSocketHandler]): Future[Int] = {
+  private def getSummaryByCountryByCategory(filter: Seq[String], category: String)(implicit context: ExecutionContext, backend: SttpBackend[Identity, Nothing, NothingT]): Future[Int] = {
     val request = basicRequest.get(uri"${baseUrl}time_series_covid19_${category}_global.csv")
-    request.send().map(_.body).map {
+    Future(request.send().body).map {
       case Left(_) => 0
       case Right(s) => extract(s, filter)
     }
@@ -56,5 +56,5 @@ final class Jhu extends Source {
 final class CovidApi extends Source {
   override val baseUrl: String = "https://api.covid19api.com/"
 
-  override def getSummaryByCountry(countryCode: String)(implicit context: ExecutionContext, backend: SttpBackend[Future, Nothing, WebSocketHandler]): Future[Response] = ???
+  override def getSummaryByCountry(countryCode: String)(implicit context: ExecutionContext, backend: SttpBackend[Identity, Nothing, NothingT]): Future[Response] = ???
 }
