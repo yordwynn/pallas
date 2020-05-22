@@ -2,37 +2,40 @@ package Covid19.Sources
 
 import Covid19.Protocol.{Response, Summary}
 import Covid19.Countries.countries
+import cats.data.NonEmptyList
+import cats.effect.{ContextShift, IO}
+import cats.syntax.parallel._
 import sttp.client._
-import sttp.client.asynchttpclient.WebSocketHandler
 import sttp.client.{SttpBackend, basicRequest}
-
-import scala.concurrent.{ExecutionContext, Future}
 
 sealed trait Source {
   def baseUrl: String
-  def getSummaryByCountry(countryCode: String)(implicit context: ExecutionContext, backend: SttpBackend[Identity, Nothing, NothingT]): Future[Response]
+  def getSummaryByCountry(countryCode: String): IO[Response]
 }
 
-final class Jhu extends Source {
+final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], implicit val cs: ContextShift[IO]) extends Source {
   override val baseUrl: String = "https://raw.githubusercontent.com/CSSEGISandData/2019-nCoV/master/csse_covid_19_data/csse_covid_19_time_series/"
 
-  override def getSummaryByCountry(countryCode: String)(implicit context: ExecutionContext, backend: SttpBackend[Identity, Nothing, NothingT]): Future[Response] = {
+  override def getSummaryByCountry(countryCode: String): IO[Response] = {
     val filter = getFilter(countryCode)
 
-     Future.traverse(Seq(
+    val requests = NonEmptyList.of(
       getSummaryByCountryByCategory(filter, "confirmed"),
       getSummaryByCountryByCategory(filter, "deaths"),
       getSummaryByCountryByCategory(filter, "recovered")
-    ))(y => y).map{
-       case List(confirmed, deaths, recovered) => Summary(countryCode, confirmed, recovered, deaths)
-     }
+    )
+
+    requests.parSequence.map(x => x.toList).map {
+      case List(confirmed, deaths, recovered) => Summary(countryCode, confirmed, recovered, deaths)
+    }
   }
 
-  private def getSummaryByCountryByCategory(filter: Seq[String], category: String)(implicit context: ExecutionContext, backend: SttpBackend[Identity, Nothing, NothingT]): Future[Int] = {
-    val request = basicRequest.get(uri"${baseUrl}time_series_covid19_${category}_global.csv")
-    Future(request.send().body).map {
-      case Left(_) => 0
-      case Right(s) => extract(s, filter)
+  private def getSummaryByCountryByCategory(filter: Seq[String], category: String): IO[Int] = {
+    val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category}_global.csv"))
+
+    requestIo.flatMap(request => IO(request.send())).flatMap(response => IO(response.body)).flatMap {
+      case Left(_) => IO.pure(0)
+      case Right(s) => IO(extract(s, filter))
     }
   }
 
@@ -56,5 +59,5 @@ final class Jhu extends Source {
 final class CovidApi extends Source {
   override val baseUrl: String = "https://api.covid19api.com/"
 
-  override def getSummaryByCountry(countryCode: String)(implicit context: ExecutionContext, backend: SttpBackend[Identity, Nothing, NothingT]): Future[Response] = ???
+  override def getSummaryByCountry(countryCode: String): IO[Response] = ???
 }
