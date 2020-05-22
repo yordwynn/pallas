@@ -1,10 +1,8 @@
 package Covid19.Sources
 
-import Covid19.Protocol.{Response, Summary}
+import Covid19.Protocol.{Confirmed, Dead, Infected, Recovered, Response, Summary}
 import Covid19.Countries.countries
-import cats.data.NonEmptyList
 import cats.effect.{ContextShift, IO}
-import cats.syntax.parallel._
 import sttp.client._
 import sttp.client.{SttpBackend, basicRequest}
 
@@ -19,23 +17,31 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
   override def getSummaryByCountry(countryCode: String): IO[Response] = {
     val filter = getFilter(countryCode)
 
-    val requests = NonEmptyList.of(
-      getSummaryByCountryByCategory(filter, "confirmed"),
-      getSummaryByCountryByCategory(filter, "deaths"),
-      getSummaryByCountryByCategory(filter, "recovered")
-    )
-
-    requests.parSequence.map(x => x.toList).map {
-      case List(confirmed, deaths, recovered) => Summary(countryCode, confirmed, recovered, deaths)
-    }
+    for {
+      confFib <- getConfirmedByCountry(filter).start
+      deadFib <- getDeadByCountry(filter).start
+      recFib <- getRecoveredByCountry(filter).start
+      recovered <- recFib.join
+      dead <- deadFib.join
+      confirmed <- confFib.join
+    } yield Summary(countryCode, confirmed, recovered, dead)
   }
 
-  private def getSummaryByCountryByCategory(filter: Seq[String], category: String): IO[Int] = {
+  private def getConfirmedByCountry(filter: Seq[String]): IO[Confirmed] =
+    getSummaryByCountryByCategory(filter, "confirmed", Confirmed)
+
+  private def getDeadByCountry(filter: Seq[String]): IO[Dead] =
+    getSummaryByCountryByCategory(filter, "deaths", Dead)
+
+  private def getRecoveredByCountry(filter: Seq[String]): IO[Recovered] =
+    getSummaryByCountryByCategory(filter, "recovered", Recovered)
+
+  private def getSummaryByCountryByCategory[A <: Infected](filter: Seq[String], category: String, f: Int => A): IO[A] = {
     val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category}_global.csv"))
 
     requestIo.flatMap(request => IO(request.send())).flatMap(response => IO(response.body)).flatMap {
-      case Left(_) => IO.pure(0)
-      case Right(s) => IO(extract(s, filter))
+      case Left(_) => IO.pure(f(0))
+      case Right(s) => IO(f(extract(s, filter)))
     }
   }
 
