@@ -1,6 +1,6 @@
 package Covid19.Sources
 
-import Covid19.Protocol.{Confirmed, Dead, Infected, Recovered, Response, Summary}
+import Covid19.Protocol.{Confirmed, Dead, Recovered, Response, Summary}
 import Covid19.Countries.countries
 import cats.effect.{ContextShift, IO}
 import sttp.client._
@@ -36,7 +36,7 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
   private def getRecoveredByCountry(filter: Seq[String]): IO[Recovered] =
     getSummaryByCountryByCategory(filter, "recovered", Recovered)
 
-  private def getSummaryByCountryByCategory[A <: Infected](filter: Seq[String], category: String, f: Int => A): IO[A] = {
+  private def getSummaryByCountryByCategory[A](filter: Seq[String], category: String, f: Int => A): IO[A] = {
     val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category}_global.csv"))
 
     requestIo.flatMap(request => IO(request.send())).flatMap(response => IO(response.body)).flatMap {
