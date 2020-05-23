@@ -14,6 +14,6 @@ class JavaWrapper {
   val source = new Jhu()
 
   def getSummaryByCountry(countryCode: String): java.util.concurrent.CompletionStage[Summary] = {
-    source.getSummaryByCountry(countryCode).map(x => x.asInstanceOf[Summary]).unsafeToFuture().asJava
+    source.getSummaryByCountry(countryCode).unsafeToFuture().asJava
   }
 }

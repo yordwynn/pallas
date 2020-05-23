@@ -8,13 +8,13 @@ import sttp.client.{SttpBackend, basicRequest}
 
 sealed trait Source {
   def baseUrl: String
-  def getSummaryByCountry(countryCode: String): IO[Response]
+  def getSummaryByCountry(countryCode: String): IO[Summary]
 }
 
 final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], implicit val cs: ContextShift[IO]) extends Source {
   override val baseUrl: String = "https://raw.githubusercontent.com/CSSEGISandData/2019-nCoV/master/csse_covid_19_data/csse_covid_19_time_series/"
 
-  override def getSummaryByCountry(countryCode: String): IO[Response] = {
+  override def getSummaryByCountry(countryCode: String): IO[Summary] = {
     val filter = getFilter(countryCode)
 
     for {
@@ -65,5 +65,5 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
 final class CovidApi extends Source {
   override val baseUrl: String = "https://api.covid19api.com/"
 
-  override def getSummaryByCountry(countryCode: String): IO[Response] = ???
+  override def getSummaryByCountry(countryCode: String): IO[Summary] = ???
 }
