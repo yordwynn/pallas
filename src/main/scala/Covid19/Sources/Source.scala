@@ -31,7 +31,7 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
     getSummaryByCountryByCategory(filter, InfectedCategory.Confirmed).map(Confirmed)
 
   private def getDeadByCountry(filter: Seq[String]): IO[Dead] =
-    getSummaryByCountryByCategory(filter, InfectedCategory.Dead).map(Dead)
+    getSummaryByCountryByCategory(filter, InfectedCategory.Deaths).map(Dead)
 
   private def getRecoveredByCountry(filter: Seq[String]): IO[Recovered] =
     getSummaryByCountryByCategory(filter, InfectedCategory.Recovered).map(Recovered)
@@ -40,10 +40,9 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
     val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category.entryName}_global.csv"))
 
     requestIo
-      .flatMap(request => IO(request.send()))
-      .flatMap(response => IO(response.body))
-      .flatMap {
-        s => s.fold(_ => IO.pure(0), x => IO(extract(x, filter)))
+      .map(request => request.send().body)
+      .map {
+        response => response.fold(_ => 0, extract(_, filter))
       }
   }
 
