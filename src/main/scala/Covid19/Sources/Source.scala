@@ -28,20 +28,20 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
   }
 
   private def getConfirmedByCountry(filter: Seq[String]): IO[Confirmed] =
-    getSummaryByCountryByCategory(filter, "confirmed", Confirmed)
+    getSummaryByCountryByCategory(filter, "confirmed").map(Confirmed)
 
   private def getDeadByCountry(filter: Seq[String]): IO[Dead] =
-    getSummaryByCountryByCategory(filter, "deaths", Dead)
+    getSummaryByCountryByCategory(filter, "deaths").map(Dead)
 
   private def getRecoveredByCountry(filter: Seq[String]): IO[Recovered] =
-    getSummaryByCountryByCategory(filter, "recovered", Recovered)
+    getSummaryByCountryByCategory(filter, "recovered").map(Recovered)
 
-  private def getSummaryByCountryByCategory[A](filter: Seq[String], category: String, f: Int => A): IO[A] = {
+  private def getSummaryByCountryByCategory(filter: Seq[String], category: String): IO[Int] = {
     val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category}_global.csv"))
 
     requestIo.flatMap(request => IO(request.send())).flatMap(response => IO(response.body)).flatMap {
-      case Left(_) => IO.pure(f(0))
-      case Right(s) => IO(f(extract(s, filter)))
+      case Left(_) => IO.pure(0)
+      case Right(s) => IO(extract(s, filter))
     }
   }
 
