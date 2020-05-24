@@ -2,12 +2,12 @@ package Covid19.Protocol
 
 import enumeratum._
 
-sealed abstract class InfectedCategory(override val entryName: String) extends EnumEntry
+sealed abstract class InfectedCategory extends EnumEntry.Lowercase
 
 object InfectedCategory extends Enum[InfectedCategory] {
   val values: IndexedSeq[InfectedCategory] = findValues
 
-  case object Confirmed extends InfectedCategory("confirmed")
-  case object Recovered extends InfectedCategory("recovered")
-  case object Dead extends InfectedCategory("deaths")
+  case object Confirmed extends InfectedCategory
+  case object Recovered extends InfectedCategory
+  case object Deaths extends InfectedCategory
 }
