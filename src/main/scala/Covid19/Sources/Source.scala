@@ -39,10 +39,12 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
   private def getSummaryByCountryByCategory(filter: Seq[String], category: InfectedCategory): IO[Int] = {
     val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category.entryName}_global.csv"))
 
-    requestIo.flatMap(request => IO(request.send())).flatMap(response => IO(response.body)).flatMap {
-      case Left(_) => IO.pure(0)
-      case Right(s) => IO(extract(s, filter))
-    }
+    requestIo
+      .flatMap(request => IO(request.send()))
+      .flatMap(response => IO(response.body))
+      .flatMap {
+        s => s.fold(_ => IO.pure(0), x => IO(extract(x, filter)))
+      }
   }
 
   private def extract(data: String, filter: Seq[String]): Int = {
