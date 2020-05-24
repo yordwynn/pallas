@@ -1,6 +1,6 @@
 package Covid19.Sources
 
-import Covid19.Protocol.{Confirmed, Dead, Recovered, Response, Summary}
+import Covid19.Protocol.{Confirmed, Dead, InfectedCategory, Recovered, Response, Summary}
 import Covid19.Countries.countries
 import cats.effect.{ContextShift, IO}
 import sttp.client._
@@ -28,16 +28,16 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
   }
 
   private def getConfirmedByCountry(filter: Seq[String]): IO[Confirmed] =
-    getSummaryByCountryByCategory(filter, "confirmed").map(Confirmed)
+    getSummaryByCountryByCategory(filter, InfectedCategory.Confirmed).map(Confirmed)
 
   private def getDeadByCountry(filter: Seq[String]): IO[Dead] =
-    getSummaryByCountryByCategory(filter, "deaths").map(Dead)
+    getSummaryByCountryByCategory(filter, InfectedCategory.Dead).map(Dead)
 
   private def getRecoveredByCountry(filter: Seq[String]): IO[Recovered] =
-    getSummaryByCountryByCategory(filter, "recovered").map(Recovered)
+    getSummaryByCountryByCategory(filter, InfectedCategory.Recovered).map(Recovered)
 
-  private def getSummaryByCountryByCategory(filter: Seq[String], category: String): IO[Int] = {
-    val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category}_global.csv"))
+  private def getSummaryByCountryByCategory(filter: Seq[String], category: InfectedCategory): IO[Int] = {
+    val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category.entryName}_global.csv"))
 
     requestIo.flatMap(request => IO(request.send())).flatMap(response => IO(response.body)).flatMap {
       case Left(_) => IO.pure(0)
