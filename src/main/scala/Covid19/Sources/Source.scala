@@ -1,6 +1,6 @@
 package Covid19.Sources
 
-import Covid19.Protocol.{Confirmed, Dead, InfectedCategory, Recovered, Response, Summary}
+import Covid19.Protocol.{Confirmed, Dead, InfectedCategory, Recovered, Summary}
 import Covid19.Countries.countries
 import cats.effect.{ContextShift, IO}
 import sttp.client._
