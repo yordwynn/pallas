@@ -15,46 +15,46 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
   override val baseUrl: String = "https://raw.githubusercontent.com/CSSEGISandData/2019-nCoV/master/csse_covid_19_data/csse_covid_19_time_series/"
 
   override def getSummaryByCountry(countryCode: String): IO[Summary] = {
-    val filter = getFilter(countryCode)
+    val countryNames = getNamesByCountryCode(countryCode)
 
     for {
-      confFib <- getConfirmedByCountry(filter).start
-      deadFib <- getDeadByCountry(filter).start
-      recFib <- getRecoveredByCountry(filter).start
+      confFib <- getConfirmedByCountry(countryNames).start
+      deadFib <- getDeadByCountry(countryNames).start
+      recFib <- getRecoveredByCountry(countryNames).start
       recovered <- recFib.join
       dead <- deadFib.join
       confirmed <- confFib.join
     } yield Summary(countryCode, confirmed, recovered, dead)
   }
 
-  private def getConfirmedByCountry(filter: Seq[String]): IO[Confirmed] =
-    getSummaryByCountryByCategory(filter, InfectedCategory.Confirmed).map(Confirmed)
+  private def getConfirmedByCountry(countryNames: Seq[String]): IO[Confirmed] =
+    getSummaryByCountryByCategory(countryNames, InfectedCategory.Confirmed).map(Confirmed)
 
-  private def getDeadByCountry(filter: Seq[String]): IO[Dead] =
-    getSummaryByCountryByCategory(filter, InfectedCategory.Deaths).map(Dead)
+  private def getDeadByCountry(countryNames: Seq[String]): IO[Dead] =
+    getSummaryByCountryByCategory(countryNames, InfectedCategory.Deaths).map(Dead)
 
-  private def getRecoveredByCountry(filter: Seq[String]): IO[Recovered] =
-    getSummaryByCountryByCategory(filter, InfectedCategory.Recovered).map(Recovered)
+  private def getRecoveredByCountry(countryNames: Seq[String]): IO[Recovered] =
+    getSummaryByCountryByCategory(countryNames, InfectedCategory.Recovered).map(Recovered)
 
-  private def getSummaryByCountryByCategory(filter: Seq[String], category: InfectedCategory): IO[Int] = {
+  private def getSummaryByCountryByCategory(countryNames: Seq[String], category: InfectedCategory): IO[Int] = {
     val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category.entryName}_global.csv"))
 
     requestIo
       .map(request => request.send().body)
       .map {
-        response => response.fold(_ => 0, extract(_, filter))
+        response => response.fold(_ => 0, extract(_, countryNames))
       }
   }
 
-  private def extract(data: String, filter: Seq[String]): Int = {
+  private def extract(data: String, countryNames: Seq[String]): Int = {
     data.
       split("\n").toList.
       map(_.split(",").toList).
-      filter(l => filter.contains(l(1))).
+      filter(l => countryNames.contains(l(1))).
       map(_.last.toInt).sum
   }
 
-  private def getFilter(countryCode: String): List[String] = {
+  private def getNamesByCountryCode(countryCode: String): List[String] = {
     countries.filter {
       case (_, code) => code == countryCode.toUpperCase
     }.map {
