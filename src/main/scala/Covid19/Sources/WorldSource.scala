@@ -6,12 +6,12 @@ import cats.effect.{ContextShift, IO}
 import sttp.client._
 import sttp.client.{SttpBackend, basicRequest}
 
-sealed trait Source {
+sealed trait WorldSource {
   def baseUrl: String
   def getSummaryByCountry(countryCode: String): IO[Summary]
 }
 
-final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], implicit val cs: ContextShift[IO]) extends Source {
+final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], implicit val cs: ContextShift[IO]) extends WorldSource {
   override val baseUrl: String = "https://raw.githubusercontent.com/CSSEGISandData/2019-nCoV/master/csse_covid_19_data/csse_covid_19_time_series/"
 
   override def getSummaryByCountry(countryCode: String): IO[Summary] = {
