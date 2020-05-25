@@ -62,9 +62,3 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
     }.toList
   }
 }
-
-final class CovidApi extends Source {
-  override val baseUrl: String = "https://api.covid19api.com/"
-
-  override def getSummaryByCountry(countryCode: String): IO[Summary] = ???
-}
