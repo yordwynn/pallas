@@ -4,6 +4,8 @@ object Version {
   val sttp        = "2.0.1"
   val catsEffect  = "2.1.3"
   val enumeratum  = "1.6.1"
+  val circeVersion = "0.12.3"
+  val circeExtrasVersion = "0.12.2"
 }
 
 object Dependencies {
@@ -18,5 +20,15 @@ object Dependencies {
 
   val enumeratum: Seq[ModuleID] = Seq(
     "com.beachape" %% "enumeratum" % Version.enumeratum
+  )
+
+  val circe: Seq[ModuleID] = Seq(
+    "io.circe" %% "circe-core",
+    "io.circe" %% "circe-generic",
+    "io.circe" %% "circe-parser"
+  ).map(_ % Version.circeVersion)
+
+  val circeExtras: Seq[ModuleID] = Seq(
+    "io.circe" %% "circe-generic-extras" % Version.circeExtrasVersion
   )
 }
