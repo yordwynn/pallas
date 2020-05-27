@@ -23,7 +23,7 @@ object ResponseMinzdrav {
       case "items" => "Items"
     }
   )
-  implicit val responseMinzdrav: Decoder[ResponseMinzdrav] = deriveConfiguredDecoder
+  implicit val decoder: Decoder[ResponseMinzdrav] = deriveConfiguredDecoder
 }
 
 final case class InfectedRegion(
@@ -44,7 +44,7 @@ object InfectedRegion {
       case "deaths" => "Deaths"
     }
   )
-  implicit val infectedRegion: Decoder[InfectedRegion] = deriveConfiguredDecoder
+  implicit val decoder: Decoder[InfectedRegion] = deriveConfiguredDecoder
 
   def apply(region: String, isoCode: String, confirmed: Confirmed, recovered: Recovered, deaths: Dead): InfectedRegion =
     InfectedRegion(region, Option(isoCode), confirmed.count, recovered.count, deaths.count)
