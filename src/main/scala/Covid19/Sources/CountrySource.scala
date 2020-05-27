@@ -18,9 +18,13 @@ final class RussianSource(implicit backend: SttpBackend[Identity, Nothing, Nothi
   override def getInfected: IO[ResponseMinzdrav] = {
     IO.pure(basicRequest.get(uri"$baseUrl"))
       .map(request => request.send().body)
-      .map(_.fold(_ => "", b => b))
-      .map(decode[ResponseMinzdrav](_))
-      .map(_.fold(_ => ResponseMinzdrav(Nil), b => b))
+      .map(responseToResponseMinzdrav)
+  }
+
+  private def responseToResponseMinzdrav(response: Either[String, String]): ResponseMinzdrav = {
+    response
+      .fold(_ => decode[ResponseMinzdrav](""), b => decode[ResponseMinzdrav](b))
+      .fold(_ => ResponseMinzdrav(Nil), b => b)
   }
 
   override def getInfectedByRegion(isoCode: String): IO[Option[InfectedRegion]] =
