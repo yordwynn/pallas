@@ -6,6 +6,7 @@ object Version {
   val enumeratum  = "1.6.1"
   val circeVersion = "0.12.3"
   val circeExtrasVersion = "0.12.2"
+  val scalaTest = "3.1.1"
 }
 
 object Dependencies {
@@ -30,5 +31,9 @@ object Dependencies {
 
   val circeExtras: Seq[ModuleID] = Seq(
     "io.circe" %% "circe-generic-extras" % Version.circeExtrasVersion
+  )
+
+  val scalaTest: Seq[ModuleID] = Seq(
+    "org.scalatest" %% "scalatest" % Version.scalaTest % "test"
   )
 }
