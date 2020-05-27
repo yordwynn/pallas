@@ -27,11 +27,12 @@ object ResponseMinzdrav {
 }
 
 final case class InfectedRegion(
-                                 locationName: String,
-                                 isoCode: Option[String],
-                                 confirmed: Int,
-                                 recovered: Int,
-                                 deaths: Int) extends Response
+  locationName: String,
+  isoCode: Option[String],
+  confirmed: Int,
+  recovered: Int,
+  deaths: Int
+) extends Response
 
 object InfectedRegion {
   implicit val customConfig: Configuration = Configuration.default.copy(
