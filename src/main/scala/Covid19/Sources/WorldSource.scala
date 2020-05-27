@@ -1,6 +1,6 @@
 package Covid19.Sources
 
-import Covid19.Protocol.{Confirmed, Dead, InfectedCategory, Recovered, Summary}
+import Covid19.Protocol.{Confirmed, Dead, InfectedCategory, Recovered, InfectedCountry}
 import Covid19.Countries.countries
 import cats.effect.{ContextShift, IO}
 import sttp.client._
@@ -8,13 +8,13 @@ import sttp.client.{SttpBackend, basicRequest}
 
 sealed trait WorldSource {
   def baseUrl: String
-  def getSummaryByCountry(countryCode: String): IO[Summary]
+  def getSummaryByCountry(countryCode: String): IO[InfectedCountry]
 }
 
 final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], implicit val cs: ContextShift[IO]) extends WorldSource {
   override val baseUrl: String = "https://raw.githubusercontent.com/CSSEGISandData/2019-nCoV/master/csse_covid_19_data/csse_covid_19_time_series/"
 
-  override def getSummaryByCountry(countryCode: String): IO[Summary] = {
+  override def getSummaryByCountry(countryCode: String): IO[InfectedCountry] = {
     val countryNames = getNamesByCountryCode(countryCode)
 
     for {
@@ -24,7 +24,7 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
       recovered <- recFib.join
       dead <- deadFib.join
       confirmed <- confFib.join
-    } yield Summary(countryCode, confirmed, recovered, dead)
+    } yield InfectedCountry(countryCode, confirmed, recovered, dead)
   }
 
   private def getConfirmedByCountry(countryNames: Seq[String]): IO[Confirmed] =
