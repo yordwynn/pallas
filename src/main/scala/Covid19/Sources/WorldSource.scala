@@ -51,7 +51,7 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
       split("\n").toList.
       map(_.split(",").toList).
       filter(l => countryNames.contains(l(1))).
-      map(_.last.toInt).sum
+      map(_.last.trim.toInt).sum
   }
 
   private def getNamesByCountryCode(countryCode: String): List[String] = {
