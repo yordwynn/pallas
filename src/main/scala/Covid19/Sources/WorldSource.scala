@@ -1,6 +1,6 @@
 package Covid19.Sources
 
-import Covid19.Protocol.{Confirmed, Dead, InfectedCategory, Recovered, InfectedCountry}
+import Covid19.Protocol.{CategoryName, Confirmed, Dead, InfectedCategory, CovidData, Recovered}
 import Covid19.Countries.countries
 import cats.effect.{ContextShift, IO}
 import sttp.client._
@@ -8,14 +8,14 @@ import sttp.client.{SttpBackend, basicRequest}
 
 sealed trait WorldSource {
   def baseUrl: String
-  def getSummaryByCountry(countryCode: String): IO[InfectedCountry]
+  def getInfectedByLocation(isoCode: String): IO[CovidData]
 }
 
 final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], implicit val cs: ContextShift[IO]) extends WorldSource {
   override val baseUrl: String = "https://raw.githubusercontent.com/CSSEGISandData/2019-nCoV/master/csse_covid_19_data/csse_covid_19_time_series/"
 
-  override def getSummaryByCountry(countryCode: String): IO[InfectedCountry] = {
-    val countryNames = getNamesByCountryCode(countryCode)
+  override def getInfectedByLocation(isoCode: String): IO[CovidData] = {
+    val countryNames = getNamesByCountryCode(isoCode)
 
     for {
       confFib <- getConfirmedByCountry(countryNames).start
@@ -24,20 +24,20 @@ final class Jhu(implicit backend: SttpBackend[Identity, Nothing, NothingT], impl
       recovered <- recFib.join
       dead <- deadFib.join
       confirmed <- confFib.join
-    } yield InfectedCountry(countryCode, confirmed, recovered, dead)
+    } yield CovidData(countryNames.head, isoCode, confirmed, recovered, dead)
   }
 
   private def getConfirmedByCountry(countryNames: Seq[String]): IO[Confirmed] =
-    getSummaryByCountryByCategory(countryNames, InfectedCategory.Confirmed).map(Confirmed)
+    getSummaryByCountryByCategory[Confirmed](countryNames).map(Confirmed)
 
   private def getDeadByCountry(countryNames: Seq[String]): IO[Dead] =
-    getSummaryByCountryByCategory(countryNames, InfectedCategory.Deaths).map(Dead)
+    getSummaryByCountryByCategory[Dead](countryNames).map(Dead)
 
   private def getRecoveredByCountry(countryNames: Seq[String]): IO[Recovered] =
-    getSummaryByCountryByCategory(countryNames, InfectedCategory.Recovered).map(Recovered)
+    getSummaryByCountryByCategory[Recovered](countryNames).map(Recovered)
 
-  private def getSummaryByCountryByCategory(countryNames: Seq[String], category: InfectedCategory): IO[Int] = {
-    val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${category.entryName}_global.csv"))
+  private def getSummaryByCountryByCategory[C <: InfectedCategory: CategoryName](countryNames: Seq[String]): IO[Int] = {
+    val requestIo = IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${CategoryName[C].name}_global.csv"))
 
     requestIo
       .map(request => request.send().body)
