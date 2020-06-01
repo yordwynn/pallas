@@ -6,27 +6,27 @@ import sttp.client._
 import sttp.client.{SttpBackend, basicRequest}
 import io.circe.parser._
 
-sealed trait CountrySource {
+sealed trait CountrySource[A] {
   def baseUrl: String
-  def getInfected: IO[ResponseRussia]
-  def getInfectedByRegion(isoCode: String): IO[Option[CovidData]]
+  def getInfected: IO[A]
+  def getInfectedByLocation(isoCode: String): IO[Option[CovidData]]
 }
 
-final class RussianSource(implicit backend: SttpBackend[Identity, Nothing, NothingT]) extends CountrySource {
+final class RussianSource(implicit backend: SttpBackend[Identity, Nothing, NothingT]) extends CountrySource[ResponseRussia] {
   override val baseUrl: String = "https://covid19.rosminzdrav.ru/wp-json/api/mapdata/"
 
   override def getInfected: IO[ResponseRussia] = {
     IO.pure(basicRequest.get(uri"$baseUrl"))
       .map(request => request.send().body)
-      .map(responseToResponseMinzdrav)
+      .map(responseToResponseRussia)
   }
 
-  private def responseToResponseMinzdrav(response: Either[String, String]): ResponseRussia = {
+  private def responseToResponseRussia(response: Either[String, String]): ResponseRussia = {
     response
       .fold(_ => decode[ResponseRussia](""), b => decode[ResponseRussia](b))
       .fold(_ => ResponseRussia(Nil), b => b)
   }
 
-  override def getInfectedByRegion(isoCode: String): IO[Option[CovidData]] =
+  override def getInfectedByLocation(isoCode: String): IO[Option[CovidData]] =
     getInfected.map(rm => rm.items.find(_.isoCode.contains(isoCode)))
 }

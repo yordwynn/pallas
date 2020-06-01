@@ -14,7 +14,7 @@ class JavaWrapper {
   val source = new Jhu()
 
   def getSummaryByCountry(countryCode: String): java.util.concurrent.CompletionStage[CovidData] = {
-    source.getSummaryByCountry(countryCode).unsafeToFuture().asJava
+    source.getInfectedByLocation(countryCode).unsafeToFuture().asJava
   }
 
   def getInfectedInRussia: java.util.concurrent.CompletionStage[ResponseRussia] = {
