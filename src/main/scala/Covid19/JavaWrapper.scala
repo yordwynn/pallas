@@ -1,6 +1,6 @@
 package Covid19
 
-import Covid19.Protocol.{InfectedCountry, ResponseMinzdrav}
+import Covid19.Protocol.{CovidData, ResponseRussia}
 import Covid19.Sources.{Jhu, RussianSource}
 import cats.effect.{ContextShift, IO}
 import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
@@ -13,11 +13,11 @@ class JavaWrapper {
   implicit val sttpBackend: SttpBackend[Identity, Nothing, NothingT] = HttpURLConnectionBackend()
   val source = new Jhu()
 
-  def getSummaryByCountry(countryCode: String): java.util.concurrent.CompletionStage[InfectedCountry] = {
-    source.getSummaryByCountry(countryCode).unsafeToFuture().asJava
+  def getSummaryByCountry(countryCode: String): java.util.concurrent.CompletionStage[CovidData] = {
+    source.getInfectedByLocation(countryCode).unsafeToFuture().asJava
   }
 
-  def getInfectedInRussia: java.util.concurrent.CompletionStage[ResponseMinzdrav] = {
+  def getInfectedInRussia: java.util.concurrent.CompletionStage[ResponseRussia] = {
     new RussianSource().getInfected.unsafeToFuture().asJava
   }
 }

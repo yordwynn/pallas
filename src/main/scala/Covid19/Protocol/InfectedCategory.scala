@@ -1,13 +1,21 @@
 package Covid19.Protocol
 
-import enumeratum._
+sealed trait InfectedCategory
+final case class Confirmed(count: Int) extends InfectedCategory
+final case class Dead(count: Int) extends InfectedCategory
+final case class Recovered(count: Int) extends InfectedCategory
 
-sealed abstract class InfectedCategory extends EnumEntry.Lowercase
+object InfectedCategory {
+  implicit val categoryConfirmed: CategoryName[Confirmed] = CategoryName.instance[Confirmed]("confirmed")
+  implicit val categoryDead: CategoryName[Dead] = CategoryName.instance[Dead]("deaths")
+  implicit val categoryRecovered: CategoryName[Recovered] = CategoryName.instance[Recovered]("recovered")
+}
 
-object InfectedCategory extends Enum[InfectedCategory] {
-  val values: IndexedSeq[InfectedCategory] = findValues
+trait CategoryName[T <: InfectedCategory] {
+  def name: String
+}
 
-  case object Confirmed extends InfectedCategory
-  case object Recovered extends InfectedCategory
-  case object Deaths extends InfectedCategory
+object CategoryName {
+  def apply[T <: InfectedCategory](implicit ev: CategoryName[T]): CategoryName[T] = ev
+  def instance[T <: InfectedCategory](n: String): CategoryName[T] = new CategoryName[T] { val name: String = n }
 }

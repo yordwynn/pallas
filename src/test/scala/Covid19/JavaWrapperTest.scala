@@ -6,7 +6,7 @@ class JavaWrapperTest extends org.scalatest.funsuite.AnyFunSuite {
     while (!request.isDone) {}
     val result = request.get()
 
-    assert(result.confirmed > 0 && result.deaths > 0 && result.recovered > 0 && result.country == "ru")
+    assert(result.confirmed > 0 && result.deaths > 0 && result.recovered > 0 && result.isoCode.contains("ru"))
   }
 
   test("return infected in russia by region") {
