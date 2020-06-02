@@ -2,7 +2,7 @@ import Dependencies._
 
 name := "pallas"
 
-version := "0.2"
+version := "1.0.0"
 
 scalaVersion := "2.13.1"
 
