@@ -1,11 +1,13 @@
 package Covid19.Sources
 
-import Covid19.Protocol.{CategoryName, CategoryBuilder, Confirmed, CovidData, Dead, InfectedCategory, Recovered}
+import Covid19.Protocol.{CategoryBuilder, CategoryName, Confirmed, CovidData, Dead, InfectedCategory, Recovered}
 import Covid19.Countries.countries
 import Covid19.Protocol
 import cats.effect.{ContextShift, IO}
 import sttp.client._
 import sttp.client.{SttpBackend, basicRequest}
+
+import scala.reflect.ClassTag
 
 final class WorldSource(implicit backend: SttpBackend[Identity, Nothing, NothingT], implicit val cs: ContextShift[IO]) extends Source {
   override val baseUrl: String = "https://raw.githubusercontent.com/CSSEGISandData/2019-nCoV/master/csse_covid_19_data/csse_covid_19_time_series/"
@@ -80,15 +82,15 @@ final class WorldSource(implicit backend: SttpBackend[Identity, Nothing, Nothing
   private def getRequest[C <: InfectedCategory: CategoryName] =
     IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${CategoryName[C].name}_global.csv"))
 
-  private def getSummaryByCategory[C <: InfectedCategory: CategoryName]: IO[List[C]] = {
+  private def getSummaryByCategory[C <: InfectedCategory: CategoryName: CategoryBuilder: ClassTag]: IO[List[C]] = {
     getRequest
       .map(request => request.send().body)
       .map {
-        response => response.fold(_ => List.empty: List[C], extract) // trouble is here
+        response => response.fold(_ => List.empty[C], extract[C])
       }
   }
 
-  private def extract[C <: InfectedCategory: CategoryBuilder](data: String): List[C] = {
+  private def extract[C <: InfectedCategory: CategoryBuilder: ClassTag](data: String): List[C] = {
     data
       .split("\n")
       .map(_.split(","))
