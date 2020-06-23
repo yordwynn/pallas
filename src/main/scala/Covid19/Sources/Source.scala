@@ -6,5 +6,5 @@ import cats.effect.IO
 trait Source {
   def baseUrl: String
   def getInfected: IO[Response]
-  def getInfectedByLocation(isoCode: String): IO[Option[CovidData]]
+  def getInfectedByLocation(isoCode: String): IO[CovidData]
 }

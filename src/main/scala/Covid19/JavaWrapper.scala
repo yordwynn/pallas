@@ -1,12 +1,14 @@
 package Covid19
 
-import Covid19.Protocol.{CovidData, ResponseRussia}
-import Covid19.Sources.{WorldSource, RussianSource}
+import Covid19.Protocol.{CovidData, Response}
+import Covid19.Sources.{RussianSource, WorldSource}
 import cats.effect.{ContextShift, IO}
 import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
 
 import scala.concurrent.ExecutionContext
 import scala.jdk.FutureConverters._
+
+import Covid19.Protocol.Russia._
 
 class JavaWrapper {
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
@@ -17,7 +19,7 @@ class JavaWrapper {
     source.getInfectedByLocation(countryCode).unsafeToFuture().asJava
   }
 
-  def getInfectedInRussia: java.util.concurrent.CompletionStage[ResponseRussia] = {
+  def getInfectedInRussia: java.util.concurrent.CompletionStage[Response] = {
     new RussianSource().getInfected.unsafeToFuture().asJava
   }
 }
