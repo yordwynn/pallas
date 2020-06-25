@@ -1,6 +1,9 @@
 package Covid19.Protocol
 
-sealed trait InfectedCategory
+sealed trait InfectedCategory {
+  def isoCode: String
+  def count: Int
+}
 final case class Confirmed(isoCode: String, count: Int) extends InfectedCategory
 final case class Dead(isoCode: String, count: Int) extends InfectedCategory
 final case class Recovered(isoCode: String, count: Int) extends InfectedCategory

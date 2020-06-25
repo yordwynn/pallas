@@ -19,6 +19,10 @@ class JavaWrapper {
     source.getInfectedByLocation(countryCode).unsafeToFuture().asJava
   }
 
+  def getInfectedInWorld:  java.util.concurrent.CompletionStage[Response] = {
+    new WorldSource().getInfected.unsafeToFuture().asJava
+  }
+
   def getInfectedInRussia: java.util.concurrent.CompletionStage[Response] = {
     new RussianSource().getInfected.unsafeToFuture().asJava
   }

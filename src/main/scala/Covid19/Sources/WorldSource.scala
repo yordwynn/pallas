@@ -22,7 +22,7 @@ final class WorldSource(implicit backend: SttpBackend[Identity, Nothing, Nothing
       recovered <- recFib.join
       dead <- deadFib.join
       confirmed <- confFib.join
-    } yield CovidData(countryNames.head, isoCode, confirmed, recovered, dead)
+    } yield CovidData(countryNames.head, isoCode.toUpperCase(), confirmed, recovered, dead)
   }
 
   private def getConfirmedByCountry(countryNames: Seq[String]): IO[Confirmed] =
@@ -61,40 +61,53 @@ final class WorldSource(implicit backend: SttpBackend[Identity, Nothing, Nothing
     }.toList
   }
 
-  override def getInfected: IO[Protocol.Response] = ???
-
-  // I dont like all the code below
-  private def getConfirmed: IO[Map[String, Confirmed]] =
+  override def getInfected: IO[Protocol.Response] = {
     for {
-      data <- getSummaryByCategory[Confirmed]
-    } yield data.groupMapReduce(_.isoCode)(x => x)((left, right) => Confirmed(left.isoCode, left.count + right.count))
+      confFib <- getSummaryByCategory[Confirmed].start
+      deadFib <- getSummaryByCategory[Dead].start
+      recFib <- getSummaryByCategory[Recovered].start
 
-  private def getDead: IO[Map[String, Dead]] =
-    for {
-      data <- getSummaryByCategory[Dead]
-    } yield data.groupMapReduce(_.isoCode)(x => x)((left, right) => Dead(left.isoCode, left.count + right.count))
+      recovered <- recFib.join
+      dead <- deadFib.join
+      confirmed <- confFib.join
 
-  private def getRecovered: IO[Map[String, Recovered]] =
-    for {
-      data <- getSummaryByCategory[Recovered]
-    } yield data.groupMapReduce(_.isoCode)(x => x)((left, right) => Recovered(left.isoCode, left.count + right.count))
+      items = fuseSummary(confirmed, dead, recovered)
+    } yield new Protocol.Response(items)
+  }
+
+  def fuseSummary(confirmed: Map[String, Confirmed], dead: Map[String, Dead], recovered: Map[String, Recovered]): List[CovidData] = {
+    val keys = (confirmed.keys ++ dead.keys ++ recovered.keys).toSet
+    keys.map { key =>
+      val location = countries.find{ case (_, code) => code == key }.map(_._1).getOrElse("")
+      val confByKey = confirmed.getOrElse(key, Confirmed(key, 0))
+      val deadByKey = dead.getOrElse(key, Dead(key, 0))
+      val recByKey = recovered.getOrElse(key, Recovered(key, 0))
+
+      CovidData(location, key, confByKey, recByKey, deadByKey)
+    }.toList
+  }
 
   private def getRequest[C <: InfectedCategory: CategoryName] =
     IO.pure(basicRequest.get(uri"${baseUrl}time_series_covid19_${CategoryName[C].name}_global.csv"))
 
-  private def getSummaryByCategory[C <: InfectedCategory: CategoryName: CategoryBuilder: ClassTag]: IO[List[C]] = {
+  private def getSummaryByCategory[C <: InfectedCategory: CategoryName: CategoryBuilder: ClassTag]: IO[Map[String, C]] = {
     getRequest
       .map(request => request.send().body)
       .map {
         response => response.fold(_ => List.empty[C], extract[C])
       }
+      .map {
+        data => data.groupMapReduce(_.isoCode)(x => x)((left, right) => CategoryBuilder[C].build(left.isoCode, left.count + right.count))
+      }
   }
 
   private def extract[C <: InfectedCategory: CategoryBuilder: ClassTag](data: String): List[C] = {
     data
-      .split("\n")
+      .split("\n").tail
       .map(_.split(","))
-      .map(a => (countries(a(1)), a.last.trim.toInt))
+      .collect{
+        case a if countries.contains(a(1)) => (countries(a(1)), a.last.trim.toInt)
+      }
       .map {
         case (isoCode, count) => CategoryBuilder[C].build(isoCode, count)
       }
