@@ -1,6 +1,6 @@
-package Covid19.Sources
+package covid19.sources
 
-import Covid19.Protocol.{CovidData, Response}
+import covid19.model.{CovidData, Response}
 import cats.effect.IO
 import io.circe.Decoder
 import io.circe.parser.decode

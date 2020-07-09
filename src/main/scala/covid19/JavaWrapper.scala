@@ -1,14 +1,14 @@
-package Covid19
+package covid19
 
-import Covid19.Protocol.{CovidData, Response}
-import Covid19.Sources.{RussianSource, WorldSource}
+import covid19.model.{CovidData, Response}
+import covid19.sources.{RussianSource, WorldSource}
 import cats.effect.{ContextShift, IO}
 import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
 
 import scala.concurrent.ExecutionContext
 import scala.jdk.FutureConverters._
 
-import Covid19.Protocol.Russia._
+import covid19.model.Russia._
 
 class JavaWrapper {
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)

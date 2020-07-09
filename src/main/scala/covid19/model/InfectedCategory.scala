@@ -1,4 +1,4 @@
-package Covid19.Protocol
+package covid19.model
 
 sealed trait InfectedCategory {
   def isoCode: String

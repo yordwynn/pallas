@@ -1,6 +1,6 @@
-package Covid19
+package covid19
 
-package object Countries {
+package object countries {
   val countries: Map[String, String] = Map(
     "Afghanistan"                                  -> "AF",
     "Åland Islands"                                -> "AX",

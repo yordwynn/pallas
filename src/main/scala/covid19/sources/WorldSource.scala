@@ -1,8 +1,8 @@
-package Covid19.Sources
+package covid19.sources
 
-import Covid19.Protocol.{CategoryBuilder, CategoryName, Confirmed, CovidData, Dead, InfectedCategory, Recovered}
-import Covid19.Countries.countries
-import Covid19.Protocol
+import covid19.model.{CategoryBuilder, CategoryName, Confirmed, CovidData, Dead, InfectedCategory, Recovered}
+import covid19.countries.countries
+import covid19.model
 import cats.effect.{ContextShift, IO}
 import sttp.client._
 import sttp.client.{SttpBackend, basicRequest}
@@ -61,7 +61,7 @@ final class WorldSource(implicit backend: SttpBackend[Identity, Nothing, Nothing
     }.toList
   }
 
-  override def getInfected: IO[Protocol.Response] = {
+  override def getInfected: IO[model.Response] = {
     for {
       confFib <- getSummaryByCategory[Confirmed].start
       deadFib <- getSummaryByCategory[Dead].start
@@ -72,7 +72,7 @@ final class WorldSource(implicit backend: SttpBackend[Identity, Nothing, Nothing
       confirmed <- confFib.join
 
       items = fuseSummary(confirmed, dead, recovered)
-    } yield new Protocol.Response(items)
+    } yield new model.Response(items)
   }
 
   def fuseSummary(confirmed: Map[String, Confirmed], dead: Map[String, Dead], recovered: Map[String, Recovered]): List[CovidData] = {

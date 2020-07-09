@@ -1,6 +1,6 @@
-package Covid19
+package covid19
 
-import Covid19.Protocol.CovidData
+import covid19.model.CovidData
 
 class JavaWrapperTest extends org.scalatest.funsuite.AnyFunSuite {
   val jw = new JavaWrapper()
