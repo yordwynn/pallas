@@ -78,7 +78,7 @@ final class WorldSource(implicit backend: SttpBackend[Identity, Nothing, Nothing
   def fuseSummary(confirmed: Map[String, Confirmed], dead: Map[String, Dead], recovered: Map[String, Recovered]): List[CovidData] = {
     val keys = (confirmed.keys ++ dead.keys ++ recovered.keys).toSet
     keys.map { key =>
-      val location = countries.find{ case (_, code) => code == key }.map(_._1).getOrElse("")
+      val location = countries.find{ case (_, code) => code == key }.fold("")(_._1)
       val confByKey = confirmed.getOrElse(key, Confirmed(key, 0))
       val deadByKey = dead.getOrElse(key, Dead(key, 0))
       val recByKey = recovered.getOrElse(key, Recovered(key, 0))
@@ -106,10 +106,7 @@ final class WorldSource(implicit backend: SttpBackend[Identity, Nothing, Nothing
       .split("\n").tail
       .map(_.split(","))
       .collect{
-        case a if countries.contains(a(1)) => (countries(a(1)), a.last.trim.toInt)
-      }
-      .map {
-        case (isoCode, count) => CategoryBuilder[C].build(isoCode, count)
+        case a if countries.contains(a(1)) => CategoryBuilder[C].build(countries(a(1)), a.last.trim.toInt)
       }
       .toList
   }

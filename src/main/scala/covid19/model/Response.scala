@@ -6,7 +6,7 @@ import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 
 class Response(val items: List[CovidData])
 
-object Russia {
+object Response {
   implicit val customConfig: Configuration = Configuration.default.copy(
     transformMemberNames = {
       case "items" => "Items"
