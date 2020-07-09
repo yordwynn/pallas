@@ -1,18 +1,16 @@
-package Covid19.Protocol
+package covid19.model
 
 import io.circe.Decoder
 import io.circe.generic.extras.Configuration
 import io.circe.generic.extras.semiauto.deriveConfiguredDecoder
 
-sealed trait Response
+class Response(val items: List[CovidData])
 
-final case class ResponseRussia(items: List[CovidData]) extends Response
-
-object ResponseRussia {
+object Response {
   implicit val customConfig: Configuration = Configuration.default.copy(
     transformMemberNames = {
       case "items" => "Items"
     }
   )
-  implicit val decoder: Decoder[ResponseRussia] = deriveConfiguredDecoder
+  implicit val decoder: Decoder[Response] = deriveConfiguredDecoder
 }

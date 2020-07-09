@@ -1,4 +1,4 @@
-package Covid19.Protocol
+package covid19.model
 
 import io.circe.Decoder
 import io.circe.generic.extras.Configuration
